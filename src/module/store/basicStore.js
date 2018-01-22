@@ -15,7 +15,9 @@ export function createBasicStore() {
       return Object.assign({}, item);
     },
     update(id, value) {
-      state[id] = value;
+      const newState = getState();
+      newState[id] = value;
+      state = newState;
       // TODO add emitters (should be passed from uppy)
     },
     remove(id) {

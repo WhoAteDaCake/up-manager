@@ -19,7 +19,8 @@ function getArrayBuffer(chunk) {
 
 async function fileType(file) {
   const buffer = await getArrayBuffer(file).then(fileTypeFromBuffer);
-  return buffer ? buffer.mime : "unknown";
+  const altExtension = file.name.split('.').pop();
+  return buffer ? buffer.mime : altExtension || 'unknown';
 }
 
 function toIsoDate(date) {
@@ -76,6 +77,21 @@ function apply(fns) {
   return val => fns.reduce((v, fn) => fn(v), val);
 }
 
+/**
+ * @typedef {(any) => Promise} asyncF
+ */
+/**
+ * 
+ * @param {asyncF[]} seq
+ * @return {Promise} 
+ */
+function promiseSeq(seq) {
+  if (seq.length === 0) {
+    return val => Promise.resolve(val);
+  }
+  return val => seq.reduce((promise, fun) => promise.then(fun), Promise.resolve(val));
+}
+
 export default {
   createFileId,
   toIsoDate,
@@ -83,6 +99,7 @@ export default {
   validateSchema,
   parentError,
   apply,
+  promiseSeq,
   fileType
 };
 
@@ -91,6 +108,7 @@ export {
   createFileId,
   toIsoDate,
   isObject,
+  promiseSeq,
   validateSchema,
   parentError,
   fileType

@@ -28,19 +28,18 @@ function elementFromSelector(selector) {
   return document.querySelector(selector);
 }
 
-function extractLocalFileData(file) {
+async function extractLocalFileData(file) {
   if (file.source !== "Local") {
     return file;
   }
   const { data } = file;
-  fileType(data).then(console.log);
+  const  type = await fileType(data);
   const res = {
     name: data.name,
     lastModified: toIsoDate(data.lastModified),
-    type: data.type,
+    type,
     size: data.size
   };
-  console.log(res);
   return res;
 }
 
@@ -57,7 +56,8 @@ export default function createDragDrop(core, options = {}) {
   const modieferSubs = modifiers.map(fn => core.addModifier("upload", fn));
 
   function handleUpload(files) {
-    core.addFiles(files.map(file => ({ data: file, source: "Local" })));
+    core.addFiles(files.map(file => ({ data: file, source: "Local" })))
+      .then(() => console.log(core.getState()));
   }
 
   const removeDragDropListener = dragDrop(selectors.area, files => {

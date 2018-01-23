@@ -6,6 +6,7 @@ import utils from "./utils";
   add emitters for add/remove and store events
   add id to selector string by default
   allow to pass dom element instead of selector
+  Create back-up plugin (upload inamodb) - Should only remove when file was uploaded
  */
 export default function initiate(opts = {}) {
   // TODO define
@@ -31,17 +32,14 @@ export default function initiate(opts = {}) {
     // TODO checks for basic meta requirements.
     const fileId = utils.createFileId(file);
     // Makes it easier for later retrieval
-    store.update(fileId, Object.assign({}, file, { id: fileId }));
+    store.update(fileId, Object.assign({}, file, { id: fileId, stored: file }));
     return fileId;
   }
 
   function addFiles(files) {
-    const uploadModifiers = utils.apply(modifiers.upload);
-    files.map(file => {
-      const updatedFile = uploadModifiers(file);
-      addFile(updatedFile);
-      return undefined;
-    });
+    const uploadModifiers = utils.promiseSeq(modifiers.upload);
+    const actions = files.map(file => uploadModifiers(file).then(addFile));
+    return Promise.all(actions);
   }
 
   function getState() {
